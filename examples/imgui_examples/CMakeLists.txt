@@ -19,5 +19,5 @@ target_include_directories(imgui PUBLIC
     ${IMGUI_DIR}/backends
 )
 
-add_executable(imgui_test imgui_test_glfw_opengl3.cc)
+add_executable(imgui_test ${CMAKE_CURRENT_SOURCE_DIR}/imgui_example_glfw_opengl3.cc)
 target_link_libraries(imgui_test PRIVATE imgui glfw OpenGL::GL)
