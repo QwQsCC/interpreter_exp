@@ -1,5 +1,7 @@
 # 编译原理实验-解释器程序
 
+本项目[github仓库](https://github.com/QwQsCC/interpreter_exp)
+
 目录
 
 - [编译原理实验-解释器程序](#编译原理实验-解释器程序)
@@ -14,7 +16,7 @@
 
 ## 依赖和运行
 
-本项目github仓库
+GUI使用的是ImGUI，后端使用glfw3+opengl3，glfw的依赖已经作为子模块导入到仓库中。如果未安装opengl3请自行安装，或者使用其他的渲染管线。
 
 ## 项目功能说明
 
