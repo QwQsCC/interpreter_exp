@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 project(interpreter_exp)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-option(BUILD_WITH_GLFW "Build with GLFW" OFF)
+option(BUILD_WITH_GLFW "Build with GLFW" ON)
 option(BUILD_LIB_EXAMPLES "Build library examples" ON)
 option(BUILD_TEST "Build tests" ON)
 
