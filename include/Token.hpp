@@ -3,7 +3,6 @@
 #include <cctype>
 #include <cstring>
 #include <string>
-#include <string_view>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -22,51 +21,53 @@ enum class TokenType {
   Invalid      // 无效
 };
 
-// 关键字子类
-// enum class KeywordType {
-//   // 控制关键字
-//   If,
-//   Else,
-//   While,
-//   For,
-//   From,
-//   To,
-//   Return,
-//   // 基础类型关键字
-//   Int,
-//   Float,
-//   Double,
-//   Bool,
-//   // 其他
-//   None
-// };
-
-// 利用宏定义来配置关键字，只需要添加一行代码就能添加新的关键字，相较于上面的直接枚举要更方便
+// 利用宏定义来配置关键字
 #define KEYWORD_LIST                                                           \
   KEYWORD(If, "if")                                                            \
   KEYWORD(Else, "else")                                                        \
   KEYWORD(While, "while")                                                      \
   KEYWORD(For, "for")                                                          \
   KEYWORD(From, "from")                                                        \
-  KEYWORD(To, "To")                                                            \
+  KEYWORD(To, "to")                                                            \
+  KEYWORD(Step, "step")                                                        \
+  KEYWORD(Draw, "draw")                                                        \
+  KEYWORD(T, "t")                                                              \
   KEYWORD(Return, "return")                                                    \
+                                                                               \
+  KEYWORD(Color, "color")                                                      \
+  KEYWORD(Scale, "scale")                                                      \
+  KEYWORD(Rot, "rot")                                                          \
+  KEYWORD(Origin, "origin")                                                    \
+  KEYWORD(Size, "size")                                                        \
+  KEYWORD(L_bracket, "(")                                                      \
+  KEYWORD(R_bracket, ")")                                                      \
+  KEYWORD(Semico, ";")                                                         \
+  KEYWORD(Comma, ",")                                                          \
+  KEYWORD(Assign, "==")                                                        \
+  KEYWORD(Plus, "+")                                                           \
+  KEYWORD(Minus, "-")                                                          \
+  KEYWORD(Mul, "*")                                                            \
+  KEYWORD(Div, "/")                                                            \
+  KEYWORD(Power, "^")                                                          \
                                                                                \
   KEYWORD(Int, "int")                                                          \
   KEYWORD(Float, "float")                                                      \
   KEYWORD(Double, "double")                                                    \
+  KEYWORD(Bool, "bool")                                                        \
+  KEYWORD(Func, "func")                                                        \
                                                                                \
-  KEYWORD(Virtual, "virtual")
+  KEYWORD(Error_token, "error_token")
 
 // 关键字类型
 enum class KeywordType {
 #define KEYWORD(name, str) name,
   KEYWORD_LIST
 #undef KEYWORD
-      None
+      None // None不在KEYWORD_LIST中，单独定义
 };
 
 // 关键字map
-static const std::unordered_map<std::string_view, KeywordType> g_keywordMap = {
+static const std::unordered_map<std::string, KeywordType> g_keywordMap = {
 #define KEYWORD(name, str) {str, KeywordType::name},
     KEYWORD_LIST
 #undef KEYWORD
@@ -103,7 +104,7 @@ struct SourceLocation {
 
 struct Token {
   TokenType type;
-  std::string_view lexeme;
+  std::string lexeme;
   SourceLocation sourceLocation;
 
   // 使用variant方便保存每种Token的类型和信息
@@ -119,34 +120,32 @@ struct Token {
       : type(TokenType::Invalid), lexeme(""), sourceLocation(SourceLocation()),
         payload(std::monostate{}) {}
 
-  Token(TokenType t, std::string_view lex, SourceLocation sl)
+  Token(TokenType t, std::string lex, SourceLocation sl)
       : type(t), lexeme(lex), sourceLocation(sl), payload(std::monostate{}) {}
 
   // 关键字Token的构造
-  static Token makeKeyword(KeywordType kw, std::string_view lex,
-                           SourceLocation sl) {
+  static Token makeKeyword(KeywordType kw, std::string lex, SourceLocation sl) {
     Token tok(TokenType::Keyword, lex, sl);
     tok.payload = kw;
     return tok;
   }
 
   // 字面量Token的构造
-  static Token makeLiteral(LiteralType lt, std::string_view lex,
-                           SourceLocation sl) {
+  static Token makeLiteral(LiteralType lt, std::string lex, SourceLocation sl) {
     Token tok(TokenType::Literal, lex, sl);
     tok.payload = std::make_pair(lt, std::string(lex));
     return tok;
   }
 
   // 运算符/标点Token的构造
-  static Token makeOperator(char op, std::string_view lex, SourceLocation sl) {
+  static Token makeOperator(char op, std::string lex, SourceLocation sl) {
     Token tok(TokenType::Operator, lex, sl);
     tok.payload = op;
     return tok;
   }
 
   // 专用于错误的构造（新增）
-  static Token makeError(ErrorType et, std::string_view lex, SourceLocation sl,
+  static Token makeError(ErrorType et, std::string lex, SourceLocation sl,
                          const std::string &msg) {
     Token tok(TokenType::Invalid, lex, sl);
     tok.payload = std::make_pair(et, msg);
@@ -159,9 +158,17 @@ struct Token {
   // 检查是否为关键字
   bool isKeyword() const { return type == TokenType::Keyword; }
 
-  // 获取关键字类型
+  // 获取关键字类型 - 也支持从Operator和Punctuation获取
   KeywordType keyword() const {
-    return isKeyword() ? get<KeywordType>() : KeywordType::None;
+    if (type == TokenType::Keyword) {
+      return get<KeywordType>();
+    } else if (type == TokenType::Operator || type == TokenType::Punctuation) {
+      // 对于运算符和标点符号，payload存储的也是KeywordType
+      if (std::holds_alternative<KeywordType>(payload)) {
+        return get<KeywordType>();
+      }
+    }
+    return KeywordType::None;
   }
 
   // 检查是否为字面量

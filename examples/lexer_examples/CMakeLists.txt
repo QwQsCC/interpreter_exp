@@ -1,9 +1,20 @@
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-add_library(dfa_table_driver STATIC 
-    ${CMAKE_SOURCE_DIR}/src/lexer/dfa_table_driver.cc
+# SimpleLexer实现源文件
+set(SIMPLE_LEXER_SOURCES
+    ${CMAKE_SOURCE_DIR}/src/lexer/InputSource.cpp
+    ${CMAKE_SOURCE_DIR}/src/lexer/TableDrivenDFA.cpp
+    ${CMAKE_SOURCE_DIR}/src/lexer/HardCodedDFA.cpp
+    ${CMAKE_SOURCE_DIR}/src/lexer/SimpleLexer.cpp
 )
-target_link_libraries(dfa_table_driver PRIVATE spdlog::spdlog)
 
-add_executable(token_example ${CMAKE_CURRENT_SOURCE_DIR}/lexer_example.cc)
-target_link_libraries(token_example PRIVATE spdlog::spdlog dfa_table_driver)
+# SimpleLexer测试示例
+add_executable(simple_lexer_example 
+    ${CMAKE_CURRENT_SOURCE_DIR}/simple_lexer_example.cc
+    ${SIMPLE_LEXER_SOURCES}
+)
+
+target_include_directories(simple_lexer_example PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src/lexer
+)

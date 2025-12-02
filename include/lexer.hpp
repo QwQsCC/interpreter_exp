@@ -1,7 +1,9 @@
 #pragma once
 #include "Token.hpp"
+#include <fstream>
 #include <functional>
 #include <memory>
+#include <stdexcept>
 #include <vector>
 
 namespace interpreter_exp {
@@ -56,10 +58,32 @@ public:
 };
 
 // 文件输入源
-// class FileInputSource : public InputSource
-// {
-//     // 实现文件输入
-// };
+class FileInputSource : public InputSource {
+private:
+  mutable std::ifstream file_;
+  std::string filePath_;
+  SourceLocation location_{};
+  std::string sourceId_;
+  std::vector<SourceLocation> history_;
+
+public:
+  explicit FileInputSource(const std::string &filePath,
+                           const std::string &sourceId = "");
+
+  ~FileInputSource() override;
+
+  char nextChar() override;
+
+  char peekChar() const override;
+
+  void ungetChar() override;
+
+  SourceLocation getCurrentLocation() const override { return location_; }
+
+  bool eof() const override;
+
+  std::string getSourceId() const override { return sourceId_; }
+};
 
 // 词法分析器抽象基类
 class Lexer {
